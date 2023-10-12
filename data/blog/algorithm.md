@@ -4,11 +4,9 @@ date: '2021-11-19'
 lastmod: '2021-11-19'
 tags: ['算法', '工具']
 draft: false
-summary: 'Release of Tailwind Nextjs Starter Blog template v2.0, refactored with Nextjs App directory and React Server Components setup.Discover the new features and how to migrate from V1.'
-images: ['/static/images/twitter-card.png']
+summary: '算法不是一天两天可以练成的，日以继夜，与君共勉'
 ---
 
-算法不是一天两天可以练成的，日以继夜，与君共勉
 
 ## 链表
 
