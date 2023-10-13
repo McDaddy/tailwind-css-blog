@@ -16,17 +16,17 @@ summary: '在我们平时本地打生产包的时候，往往要花费大量的�
 
 TerserPlugin：压缩JS耗时1分39秒
 
-<img src="https://intranetproxy.alipay.com/skylark/lark/0/2020/png/170125/1591857156389-4fe7e975-829b-4d6c-be80-1e4acc1fb59d.png" alt="image.png" style="zoom:67%;" />
+<img src="https://intranetproxy.alipay.com/skylark/lark/0/2020/png/170125/1591857156389-4fe7e975-829b-4d6c-be80-1e4acc1fb59d.png" alt="image.png"  />
 
 EsBuilder：压缩JS耗时12秒， 相比TerserPlugin提速接近88%
 
-<img src="https://intranetproxy.alipay.com/skylark/lark/0/2020/png/170125/1591857122089-2a1a4a1f-ba6c-4e76-9200-b44f2ea1a04b.png" alt="image.png" style="zoom:67%;" />
+<img src="https://intranetproxy.alipay.com/skylark/lark/0/2020/png/170125/1591857122089-2a1a4a1f-ba6c-4e76-9200-b44f2ea1a04b.png" alt="image.png"  />
 
 总耗时，从3分21秒缩短到2分11秒左右，提速35%左右
 
 压缩大小基本没有变化，前后都是32M
 
-<img src="https://intranetproxy.alipay.com/skylark/lark/0/2020/png/170125/1591857356839-fc836c96-cd61-4237-b4a2-bfe479cb5f65.png" alt="image.png" style="zoom:67%;" />
+<img src="https://intranetproxy.alipay.com/skylark/lark/0/2020/png/170125/1591857356839-fc836c96-cd61-4237-b4a2-bfe479cb5f65.png" alt="image.png"  />
 
 内存方面只是通过观察top命令，前后在打包后期的node占用内存都在1.3个G左右，没有明显的差距，当然这样测试内存不大严谨，可以后续继续观察。
 

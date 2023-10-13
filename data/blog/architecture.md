@@ -12,7 +12,7 @@
 
 所以操作系统的核心职能就是**软件治理**。而软件治理的一个很重要的部分，就是让多个软件可以共同合理使用计算机的资源，不至于出现争抢的局面
 
-<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20230821162611975.png" alt="image-20230821162611975" style="zoom:67%;" />
+<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20230821162611975.png" alt="image-20230821162611975"  />
 
 上面是计算机启动的全流程
 
@@ -69,7 +69,7 @@
 
 那我们能不能直接去调用内核函数呢？答案是不能，因为我们的代码是运行在**用户态**，而系统调用的函数是运行在**内核态**。两者是有权限的限制的，不允许用户态直接去执行内核态中的函数
 
-<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20230823211247351.png" alt="image-20230823211247351" style="zoom:80%;" />
+<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20230823211247351.png" alt="image-20230823211247351"  />
 
 ### 多任务
 
@@ -91,7 +91,7 @@
 
 
 
-<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20230828225648006.png" alt="image-20230828225648006" style="zoom:50%;" />
+<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20230828225648006.png" alt="image-20230828225648006"  />
 
 进程内的同步和互斥主要是通过以下这些手段
 
