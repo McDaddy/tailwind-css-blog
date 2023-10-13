@@ -1,9 +1,9 @@
 ---
 title: 《SRE Google运维解密》读书笔记
-date: 2022-07-27
+date: 2023-07-27
 tags:
  - 运维
-lastmod: 2022-07-27
+lastmod: 2023-07-27
 draft: false
 summary: ''
 ---
