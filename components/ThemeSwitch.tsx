@@ -8,7 +8,13 @@ const ThemeSwitch = () => {
   const { theme, setTheme, resolvedTheme } = useTheme()
 
   // When mounted on client, now we can show the UI
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true)
+    if (theme === 'system') {
+      setTheme('light')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setTheme])
 
   if (!mounted) {
     return null
