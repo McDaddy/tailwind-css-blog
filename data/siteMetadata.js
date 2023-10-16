@@ -8,8 +8,8 @@ const siteMetadata = {
   theme: 'system', // system, dark or light
   siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
   siteRepo: 'https://github.com/McDaddy/tailwind-css-blog',
-  siteLogo: '/static/images/avatar.jpg',
-  socialBanner: '/static/images/avatar.jpg',
+  siteLogo: 'https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/avatar.jpg',
+  socialBanner: 'https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/avatar.jpg',
   mastodon: 'https://mastodon.social/@mastodonuser',
   email: 'mcdaddychen@126.com',
   github: 'https://github.com/McDaddy',
