@@ -6,12 +6,53 @@ tags:
  - JavaScript
  - 日常
 
-lastmod: 2022-08-28
+lastmod: 2023-10-31
 draft: false
 summary: '日常解答和记录自己在TypeScript上的疑问'
 ---
 
 日常解答和记录自己在TypeScript上的疑问
+
+## 类型依据
+
+即当B赋值给A时，类型到底成立不成立，依据是什么？
+
+在ts中，依据是**结构化类型（structural typing）**，相应的还有另一个概念是**名义类型（nominal typing）**
+
+```java
+// 在java中就是名义模型
+class Dog {
+  public void walk() {}
+}
+
+class Duck {
+  public void walk() {}
+}
+
+Dog dog;
+// 错误，Dog 和 Duck 是没有任何关系的类型，「狗就是狗，鸭就是鸭」
+dog = new Duck();
+```
+
+ts只关心**必要的**属性，在这里就是能走路的就是狗，同时也可以是鸭子，即完全按照结构来判断，而Java的类是一种名义模型，除非是面向接口编程，否则狗和鸭子是无法互相赋值的
+
+```typescript
+class Dog {
+  public walk() {}
+}
+
+class Duck {
+  public walk() {}
+}
+
+// 没有错误，因为狗和鸭的类型的结构一样（都由一个相同的 walk 函数构成）
+// 「因为都能够走路，所以狗和鸭一样」
+const dog: Dog = new Duck();
+```
+
+举个🌰，`Array.from`这个方法它不关心你传的是数组还是Set，因为它需要的类型是ArrayLike的对象，而这里只关心是不是这个对象里面有`length`这个属性，如果有即使写成这样也是不会报错的`Array.from({ length: 1 })`
+
+
 
 
 ## interface和type到底有什么区别？
