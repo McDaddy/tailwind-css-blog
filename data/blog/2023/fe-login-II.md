@@ -39,7 +39,7 @@ summary: '当我们日常访问网页或者网站应用时，可以发现，除�
 - Web页面在被扫码之后，一般都会提示目前操作的状态，比如`已扫码/待确认`等状态信息，类似下图
   ![image-20231103121720736](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231103121720736.png)
 - 在手机端扫码后，会跳转到一个**确认登录页**，类似下图
-  <img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/img_v3_024r_6a298aa8-d476-4522-bb55-163dded063eg.jpg" alt="img_v3_024r_6a298aa8-d476-4522-bb55-163dded063eg" style="zoom:25%;" />
+  <img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/img_v3_024r_6a298aa8-d476-4522-bb55-163dded063eg.jpg" alt="img_v3_024r_6a298aa8-d476-4522-bb55-163dded063eg"   />
 
 - 点击**确认登录**之后，PC端页面就会跳转到登录成功的页面
 - 此时PC端的登录态应该是持久化的，即使刷新页面也不会丢失这个登录状态
