@@ -199,7 +199,7 @@ Path 指定了一个 URL 路径，这个路径必须出现在要请求的资源�
 
 好了，我们说回SameSite，首先SameSite直译就是**同站**，那同站是什么意思呢？
 
-具有相同 eTLD+1 的网站被视为 “同站”。具有不同 eTLD+1 的网站是 “**跨站**”。其中TLD就是Top Level Domain的缩写，e指的是协议(http/https)
+具有相同 eTLD+1 的网站被视为 “同站”。具有不同 eTLD+1 的网站是 “**跨站**”。其中eTLD是`effective top-level domain`的缩写
 
 ![image-20231108145309174](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231108145309174.png)
 
@@ -208,6 +208,21 @@ Path 指定了一个 URL 路径，这个路径必须出现在要请求的资源�
 ![image-20231108145442073](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231108145442073.png)
 
 这里我们所说的跨站，就对应于我们上面提到的**三方**
+
+
+
+#### PSL
+
+但这里会有一些奇怪的例子，比如`a.github.com`和`b.github.com`是跨站的，这里就是要涉及上面`eTLD`中的e了。一般在我们概念中的顶级域名比如`.com`,`.net`等等也就几十个，这里面肯定是不包含`.github.com`这种商业域名的。
+
+这里引出一个新的知识**PSL**，全称是**Public Suffix List**，它就是一个域名列表，维护在[这个地址](https://publicsuffix.org/list/public_suffix_list.dat)，目前里面已经有上万条记录且可能每天都在增长。这里面维护了两类域名
+
+- ICANN提供的TLD：ICANN（The Internet Corporation for Assigned Names and Numbers，互联网名称与数字地址分配机构），这里提供的都是我们熟悉的那些顶级域名，例如最常见的 com、net、org 等
+- PRIVATE列表：是由个人或机构自行添加的，比如我们个人注册了一个域名`abc.cn`，想要把二级域名开放给别人用，比如`x.abc.cn`和`y.abc.cn`，这两个域名是给两个“外人”使用的，所以就害怕这个外人在使用这个域名的时候在`.abc.cn`这个一级域名里面去注入自己的Cookie，这样就有整个域名的Cookie被篡改的风险，所以这个列表就支持个人或机构自行去注册，把自己的域名注册成一个`effective`的TLD，本质就是为了做到域名的用户隔离
+
+
+
+
 
 SameSite有三种可选值
 
@@ -237,14 +252,41 @@ SameSite有三种可选值
 
 ![image-20231108171822564](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231108171822564.png)
 
-所以现在我们在访问各种网站是经常看到如下的提示，问我们是否接受所有Cookies
+目前我们打开世面上绝大多数的网站，打开开发者工具中的`Issues`面板，都会看到下面这样一个warning
+
+![image-20231109105957867](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231109105957867.png)
+
+
+
+所以现在我们在访问各种网站是经常看到如下的提示，问我们是否接受所有Cookies，如果我们选择`Accept All Cookies`那就意味着运行这个网站跟踪我们的浏览行为。事实上目前大多数网站都是没有这样的提示的，让我们点击接受并不是他们无法设置三方cookie而是为了规避法律风险
 
 ![image-20231108144243101](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231108144243101.png)
 
+目前在Chrome浏览器的设置中，我们也可以自主设置针对三方Cookie的策略
 
+![image-20231110151221085](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231110151221085.png)
+
+
+
+总结一下，在接下来的时间里，个人隐私会越来越受到重视，各大厂商想自由无条件获取用户的行为信息会变得越来越难。至于如果绕过三方Cookie的方法，由于篇幅原因就不在这里展开了
+
+
+
+## 总结
+
+Cookie的本质作用，不论是一方还是三方，都是用来标记用户身份的，由于这个特性它可以帮助我们完成诸如
+
+- 用户登录态的保持
+- SSO
+- 用户行为日志分析
+- 广告推荐
+
+但是浏览器厂商对三方Cookie的限制越来越严格，在不远的将来三方Cookie将逐渐淡出我们的视野
 
 
 
 ## 参考
 
 [当浏览器全面禁用三方 Cookie](https://juejin.cn/post/6844904128557105166?searchId=20231107170715391155229F92950D6F66#heading-1)
+
+[域名小知识：Public Suffix List](https://imququ.com/post/domain-public-suffix-list.html)
