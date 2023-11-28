@@ -22,8 +22,8 @@ summary: '当我们日常访问网页或者网站应用时，可以发现，除�
 ## 扫码登录的概念
 
 - 目的：免去用户去输入账号密码的流程，简化登录过程
-- 原理：通过已经登录的手机端，来授权未登录的PC页面端直接登录
 - 前提：扫码的手机端必须是已经登录的状态，否则手机端还是需要再登录一遍
+- 原理：通过已经登录的手机端，来授权未登录的PC页面端直接登录
 
 
 
@@ -49,6 +49,10 @@ summary: '当我们日常访问网页或者网站应用时，可以发现，除�
 经过上面的分析，我们可以把主要的流程总结为下图
 
 ![image-20231103141127619](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231103141127619.png)
+
+[DEMO地址](https://qrcode-login.vercel.app/pages/index.html)
+
+
 
 ## 开发实现
 
@@ -100,25 +104,42 @@ async generate(@Req() request: Request) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>扫码登录</title>
     <script src="https://unpkg.com/axios@1.5.0/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
-    <div id="login">
+    <div id="login" class="m-6 flex flex-col items-center gap-4">
+      <div class="text-lg">阿外云扫码登录</div>
       <img id="img" src="" alt="" />
-      <div id="info" style="margin-left: 16px"></div>
+      <div id="info"></div>
+    </div>
+    <div id="content" class="flex items-center p-8 gap-4 hidden">
+      <div class="text-lg">
+        你好，
+        <span id="name"></span>
+        ，欢迎来到阿外云
+      </div>
+      <button id="logout" class="text-blue-500">退出</button>
+      <a href="https://www.kuimo.top/blog/2023/fe-login-II" target="_blank" class="text-blue-500">配套文档</a>
     </div>
     <script>
+      document.getElementById('logout').addEventListener('click', function () {
+        localStorage.removeItem('xx-jwt-token');
+        location.reload();
+      });
+
       if (localStorage.getItem('xx-jwt-token')) {
-        axios.get('/userInfo', {
-          headers: { 'xx-jwt-token': localStorage.getItem('xx-jwt-token') },
-        }).then(res => {
-          if (res.data.username) {
-            document.getElementById('content').style.visibility = 'visible';
-            document.getElementById('login').style.display = 'none';
-            document.getElementById('name').innerHTML = res.data.username;
-          }
-        });
+        document.getElementById('login').style.display = 'none';
+        axios
+          .get('/userInfo', {
+            headers: { 'xx-jwt-token': localStorage.getItem('xx-jwt-token') },
+          })
+          .then((res) => {
+            if (res.data.username) {
+              document.getElementById('content').style.display = 'flex';
+              document.getElementById('name').innerHTML = res.data.username;
+            }
+          });
       } else {
-        // 打开页面就开始请求生成接口
         axios.get('/qrcode/generate').then((res) => {
           document.getElementById('img').src = res.data.img;
           queryStatus(res.data.qrcode_id);
@@ -151,7 +172,11 @@ async generate(@Req() request: Request) {
           }
           if (status === 'scan-confirm') {
             window.localStorage.setItem('xx-jwt-token', res.data.token);
-            // show app content
+            setTimeout(() => {
+              document.getElementById('login').style.display = 'none';
+              document.getElementById('content').style.display = 'flex';
+              document.getElementById('name').innerHTML = res.data.username;
+            }, 2000);
           }
         });
       }
@@ -189,9 +214,10 @@ async check(@Query('id') id: string) {
   if (info.status === 'scan-confirm') {
     return {
       token: await this.jwtService.sign({
-        userId: info.userInfo.userId,
+        username: info.userInfo.username,
       }),
       ...info,
+      username: info.userInfo.username,
     };
   }
   return info;
@@ -220,28 +246,60 @@ async check(@Query('id') id: string) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>扫码登录确认</title>
     <script src="https://unpkg.com/axios@1.5.0/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
-    <div id="login">
-      <div id="info">是否确认登录 McDaddy 的假网站？</div>
-      <button id="confirm">确认登录</button>
-      <button id="cancel">取消</button>
+    <div
+      id="login"
+      class="flex flex-col justify-center w-full h-[100vh] bg-gray-100"
+    >
+      <div id="form">
+        <div class="flex flex-col gap-2 px-8 mb-6">
+          <div class="text-base font-bold text-lg">你好，</div>
+          <div class="text-base font-bold text-lg">阿外云扫码登录确认</div>
+          <div class="text-gray-500">为保障账户安全，请确认是本人操作</div>
+          <div>请输入你的用户名(昵称默认为admin)</div>
+          <input id="input" />
+        </div>
+        <div class="flex flex-col gap-4 w-full">
+          <button
+            id="confirm"
+            class="border rounded mx-4 leading-8 text-white bg-blue-400"
+          >
+            确认登录
+          </button>
+          <button id="cancel" class="border rounded mx-4 leading-8">
+            取消登录
+          </button>
+        </div>
+      </div>
+      <div id="success" class="text-xl flex items-center justify-center hidden">
+        登录成功!
+      </div>
     </div>
 
     <script>
       const params = new URLSearchParams(window.location.search.slice(1));
+      const idInput = (document.getElementById('input').value = 'admin');
 
-      const id = params.get('id'); // 就是uuid
+      const id = params.get('id');
 
       axios.get('/qrcode/scan?id=' + id).catch((e) => {
         alert('二维码已过期');
       });
 
       document.getElementById('confirm').addEventListener('click', async () => {
-        const res = await axios.get('/login?username=admin') // 前端mock一个用户
-        await axios.get('/qrcode/confirm?id=' + id, { headers: { 'xx-jwt-token': res.data.token }}).catch((e) => {
-          alert('二维码已过期');
-        });
+        const username = document.getElementById('input').value ?? 'admin';
+        const res = await axios.get(`/login?username=${username}`);
+        await axios
+          .get('/qrcode/confirm?id=' + id, {
+            headers: { 'xx-jwt-token': res.data.token },
+          })
+          .catch((e) => {
+            alert('二维码已过期');
+          });
+        document.getElementById('success').style.display = 'flex';
+        document.getElementById('form').style.display = 'none';
       });
 
       document.getElementById('cancel').addEventListener('click', () => {
@@ -276,6 +334,23 @@ async scan(@Query('id') id: string) {
 
 ![image-20231103170414833](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231103170414833.png)
 
+### 手机端登录
+
+简化条件，不需要密码即可登录
+
+```javascript
+@Get('login')
+async login(@Query('username') username: string) {
+  return {
+    token: await this.jwtService.sign({
+      username: username,
+    }),
+  };
+}
+```
+
+
+
 ### 确认动作
 
 这里假设会在点击确认时，带上手机端的jwt token，即等于告诉服务端这个uuid对应的二维码被xx确认了，当然实际实现除了传jwt token肯定还有别的方式
@@ -294,7 +369,7 @@ async confirm(
   try {
     const info = await this.jwtService.verify(auth);
 
-    user = this.users.find((item) => item.id == info.userId);
+    user = { username: info.username };
   } catch (e) {
     throw new UnauthorizedException('token 过期，请重新登录');
   }
@@ -304,7 +379,7 @@ async confirm(
     throw new BadRequestException('二维码已过期');
   }
   info.status = 'scan-confirm';
-  info.userInfo = user;
+  info.userInfo = { username: user.username };
   return 'success';
 }
 ```
@@ -317,13 +392,13 @@ async confirm(
 
 ```javascript
 if (info.status === 'scan-confirm') {
-    return {
-      token: await this.jwtService.sign({
-        userId: info.userInfo.userId,
-      }),
-      ...info,
-    };
-  }
+  return {
+    token: await this.jwtService.sign({
+      userId: info.userInfo.userId,
+    }),
+    ...info,
+  };
+}
 ```
 
 此时的PC端，会在收到的轮询返回中得到一个额外的token字段，然后把它存到`localstorage`里面去，同时完成页面的跳转
@@ -344,13 +419,33 @@ if (status === 'scan-confirm') {
 
 ```javascript
 if (localStorage.getItem('xx-jwt-token')) {
-    axios.get('/userInfo', {
-      headers: { 'xx-jwt-token': localStorage.getItem('xx-jwt-token') },
-    }).then(res => {
-      if (res.data.username) {
-        // show page
-      }
-    });
-  }
+  axios.get('/userInfo', {
+    headers: { 'xx-jwt-token': localStorage.getItem('xx-jwt-token') },
+  }).then(res => {
+    if (res.data.username) {
+      // show page
+    }
+  });
+}
 ```
 
+
+
+### 退出登录
+
+登出就很简单了，只需清除本地存储的token即可
+
+```javascript
+document.getElementById('logout').addEventListener('click', function () {
+  localStorage.removeItem('xx-jwt-token');
+  location.reload();
+});
+```
+
+
+
+## 总结
+
+经过上面的梳理，实现扫码登录的流程应该就非常清晰了，实际具体实现的细节可能会有出入，但总体的流程基本就是如此。
+
+[GitHub地址](https://github.com/McDaddy/nest-learning/tree/main/qrcode-login)
