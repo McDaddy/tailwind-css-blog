@@ -98,7 +98,7 @@ document.cookie = 'mcdaddy=chenweitao; Max-Age=120'
 
 所以其实和Expire没有本质区别，好处是不会设置出一个过去时间的Cookie。
 
-如果这个值设置为0，这个Cookie会立即失效
+如果这个值设置为0或者负数，这个Cookie会立即失效
 
 如果设置为负数，就是成为一个会话cookie
 
@@ -213,7 +213,7 @@ Path 指定了一个 URL 路径，这个路径必须出现在要请求的资源�
 
 #### PSL
 
-但这里会有一些奇怪的例子，比如`a.github.com`和`b.github.com`是跨站的，这里就是要涉及上面`eTLD`中的e了。一般在我们概念中的顶级域名比如`.com`,`.net`等等也就几十个，这里面肯定是不包含`.github.com`这种商业域名的。
+但这里会有一些奇怪的例子，比如`a.github.io`和`b.github.io`是跨站的，这里就是要涉及上面`eTLD`中的e了。一般在我们概念中的顶级域名比如`.com`,`.net`等等也就几十个，这里面肯定是不包含`.github.com`这种商业域名的。
 
 这里引出一个新的知识**PSL**，全称是**Public Suffix List**，它就是一个域名列表，维护在[这个地址](https://publicsuffix.org/list/public_suffix_list.dat)，目前里面已经有上万条记录且可能每天都在增长。这里面维护了两类域名
 
