@@ -70,3 +70,18 @@ location ~* /js/.*/\.js
 
 *注意：前缀匹配，如果有包含关系时，按最大匹配原则进行匹配。比如在前缀匹配：`location /dir01` 与 `location /dir01/dir02`，如有请求 `http://localhost/dir01/dir02/file` 将最终匹配到 `location /dir01/dir02`*
 
+
+
+## 自动设置Origin
+
+```
+add_header Access-Control-Allow-Origin $http_origin always;
+add_header Access-Control-Allow-Credentials 'true' always;
+add_header Access-Control-Allow-Methods '*' always;
+add_header Access-Control-Allow-Headers 'Content-Type, Keep-Alive, User-Agent, If-Modified-Since, Cache-Control, X-JWT-TOKEN' always;
+
+if ($request_method = "OPTIONS") {
+    return 200;
+}
+```
+

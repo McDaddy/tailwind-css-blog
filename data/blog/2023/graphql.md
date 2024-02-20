@@ -3,6 +3,7 @@ title: GraphQL快速入门
 date: 2023-12-18
 tags:
  - 前端工程化
+ - API
 lastmod: 2023-07-11
 draft: false
 summary: '什么是GraphQL？它和Restful API是什么关系？它的优势和劣势是什么？让我们快速来通关'
@@ -322,7 +323,7 @@ curl -v https://api.github.com/repos/:owner/:repo/pulls/:number/reviews  # 获�
 
 我们甚至可以通过一个网站来查看整个API的关系图 [graphql-voyager](https://graphql-kit.com/graphql-voyager/)
 
-所以看到这里，我们因为可以理解，为什么叫做**Graph** QL了吧？
+所以看到这里，我们应该可以理解，为什么叫做**Graph** QL了吧？
 
 
 
@@ -335,6 +336,14 @@ curl -v https://api.github.com/repos/:owner/:repo/pulls/:number/reviews  # 获�
 如果是GoLang的话可以使用 [graphql-go](https://github.com/graphql-go/graphql)
 
 如果是Java的话可以使用 [graphql-java](https://github.com/graphql-java/graphql-java)
+
+同时，我们要知道GraphQL肯定不是超脱于HTTP的存在，GraphQL请求的本质依然是HTTP，它的URI永远是不变的，即所谓的单一`End Point`，所有请求都是**同一个**URL，且**只允许**POST请求
+
+![image-20231218165030106](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231218165030106.png)
+
+而它的请求Body，就是我们写的query或者mutation语句
+
+![image-20231218165226877](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20231218165226877.png)
 
 具体的实操，这篇就不展开了，将来有机会再分享
 
