@@ -1,3 +1,18 @@
+---
+title: Prometheus入门
+date: 2024-04-25
+tags:
+ - 运维
+lastmod: 2024-04-08
+draft: false
+summary: '根据Prometheus官网得来的一点点入门经验'
+
+---
+
+
+
+
+
 # 如何安装
 
 最简便的方式通过Docker搭建环境
