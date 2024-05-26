@@ -85,6 +85,50 @@ gvm use go1.18 --default
 
 
 
+### 安装gopls
+
+安装gopls以及在vscode debug都需要go1.18及以上版本
+
+如果是通过gvm安装的go可能是无法被自动识别的，需要手动在`.vscode/settings.json`里添加goroot的路径
+
+```
+{
+    "go.goroot": "/home/mcdaddy/.gvm/gos/go1.18"
+}
+```
+
+如果出现vscode debug无法进入断点的情况，可能是因为debug的路径其实是软链接，需要将路径替换成真实路径
+
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [],
+              "dlvFlags": ["--check-go-version=false"],
+              "substitutePath": [
+                {
+                  "from": "/home",
+                  "to": "/data00/home"
+                }
+              ]
+        }
+    ]
+}
+```
+
+
+
+
+
 ## zsh & oh-my-zsh安装
 
 ### 安装zsh

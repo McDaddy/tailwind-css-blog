@@ -78,7 +78,8 @@ location ~* /js/.*/\.js
 add_header Access-Control-Allow-Origin $http_origin always;
 add_header Access-Control-Allow-Credentials 'true' always;
 add_header Access-Control-Allow-Methods '*' always;
-add_header Access-Control-Allow-Headers 'Content-Type, Keep-Alive, User-Agent, If-Modified-Since, Cache-Control, X-JWT-TOKEN' always;
+add_header Access-Control-Max-Age 3600 always;
+add_header Access-Control-Allow-Headers 'Content-Type, Keep-Alive, User-Agent, If-Modified-Since, Cache-Control, X-JWT-TOKEN, lang' always;
 
 if ($request_method = "OPTIONS") {
     return 200;
