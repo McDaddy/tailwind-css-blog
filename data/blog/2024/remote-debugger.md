@@ -14,7 +14,7 @@ summary: '一步步实操如何在本地用GoLand利用开发机远程调试'
 
 这里就以Goland为工具，实现下如何远程调试
 
->  前提：开发机上已经有完备的GO环境
+>  前提：开发机上已经有完备的GO环境，怎么配环境见前文
 
 
 
@@ -116,7 +116,7 @@ ssh user@devbox_ip
 
 - 如果切换了分支，Goland是**不会**自动上传改动的代码的，需要重复上面的步骤，在根目录右键手动上传
 
-
+- 如果上一步还不能解决问题，可以点击Sync with xxx，打开后里面具体选择应该删除什么文件
 
 # 安装dlv
 
@@ -179,3 +179,129 @@ API server listening at: [::]:3452
 在任意代码中，可以像本地运行一样，打上断点
 
 如果要测试接口，那就要在postman类似工具上，用开发机ip + 应用port来访问
+
+
+
+# 跳板机
+
+还有一种情况，就是本地是无法直接连接远程开发机的，这里就需要做些额外操作
+
+1. 配置跳板机，在`~/.ssh/config`中编辑，添加ProxyJump的配置，这样就可以通过跳板机来间接访问目标机器了
+   ```
+   Host devbox
+     HostName 1.2.3.4
+     User root
+     ProxyJump proxy-server
+   ```
+
+   但是这种情况，仅仅只能在ssh的情况下访问目标机，比如目标机暴露了一个8765的端口服务，本地还是没法访问的
+
+2. 通过本地端口转发的方式来ssh到目标机器
+
+   ```
+   ssh -L 8765:<server>:8765 -L 3452:<server>:3452 root@<server>
+   ```
+
+   这个命令也是打开一个ssh连接，不同的是打开的同时会转发两个远程机器的端口到本地
+
+   在这个例子里，8765是go工程启动的端口，3452是dlv调试的端口，做了这层之后连接localhost:8765就等于连接remote-server:8765
+
+3. 正常在远程机上启动dlv，在GoLand里添加go remote配置，注意把host写为localhost
+   ![image-20240815175212480](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240815175212480.png)
+
+
+
+# Vscode连接开发机
+
+在本地的vscode中安装插件`Remote-SSH`
+
+![image-20240906173632399](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240906173632399.png)
+
+## 配置
+
+编辑`~/.ssh/config`
+
+```
+Host JumpMachine
+  HostName 1.2.3.4
+  Port 22
+  User root
+  
+Host 2.3.4.5
+  HostName 2.3.4.5
+  User tiger
+  ProxyJump JumpMachine
+
+Host *
+    GSSAPIAuthentication yes
+    GSSAPIDelegateCredentials no
+    StrictHostKeyChecking no
+    HostKeyAlgorithms +ssh-rsa
+    PubkeyAcceptedKeyTypes +ssh-rsa
+```
+
+这样就能在插件里直接看到这个机器
+
+![image-20240906175037482](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240906175037482.png)
+
+点击这个机器。 会开一个新的窗口，然后自动下载vscode Server，这可能要花十分钟以上
+
+## 解决安装问题
+
+远程机可能要花费很长时间来安装vscode Server。 但有的时候即使花了很久也安装不好，这里就是网络的问题
+
+一个简单的解决方式，找到插件的下面选项，取消即可
+
+![image-20240918140925152](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240918140925152.png)
+
+## 克隆工程
+
+找一个文件夹，在确保权限的情况下`git clone`
+
+然后点击**Open Folder**，选择这个工程目录
+
+## 安装Go插件
+
+![image-20240906181420599](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240906181420599.png)
+
+虽然本地安装过，但我们现在是在远程开发，所以也要给远程开发机安装，如果途中提示需要安装gopls，那就按照提示安装，注意go版本不能太低
+
+## 创建配置文件
+
+创建`.vscode/launch.json`
+
+```json
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [ // hertz启动参数
+                "-endpoint",
+                "0.0.0.0:8765"
+              ],
+              "dlvFlags": ["--check-go-version=false"],
+              "env": { // 环境变量
+                "SEC_TOKEN_STRING": "xxx"
+              }
+        }
+    ]
+}
+```
+
+## 启动调试
+
+在工程下任意go文件，点击键盘F5，开始启动调试，就可以开始单步调试代码了
+
+## 端口暴露
+
+![image-20240906182935036](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240906182935036.png)
+
+只有经过端口暴露， 才能在本地测试
