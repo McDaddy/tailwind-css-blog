@@ -6,17 +6,102 @@ dig
 
 
 
-ping
+### ping
+
+![image-20240923133105561](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240923133105561.png)
+
+- Icmp_seq: 使用的是icmp协议，这里就是序号。 ping本质就是icmp的echo的请求和响应
+- time：表示从发送到返回的总时间
+- ttl: 总共过了多少跳， linux初始64，这里说明总共过了 64 - 48 = 16 跳
+- 64 bytes： 表示一个icmp数据包大小就是64字节， 其中56 data bytes表示内容是56字节， 8字节是icmp数据包的头
 
 
 
-curl 
+
+
+### curl 
+
+```bash
+# 非GET请求
+curl -X -POST url
+curl -XPOST url
+
+# 添加Body
+curl -X -POST url -d dataContent
+
+# 添加Header
+curl url -H 'lang: cn' -H 'cookie: xxx' # 可以添加多个
+
+# 下载结果
+curl -O url
+curl -o a.txt url # 指定名称
+
+# 查看返回码
+curl -I url
+
+# 跟随重定向
+curl url -L
+
+# 打印连接信息
+curl -v url
+```
+
+
+
+
 
 
 
 ifconfig
 
-Tcpdump
+### tcpdump
+
+就是抓包命令，可以配合wireshark做分析
+
+
+
+### netstat
+
+需要安装net-tools这个软件包才能用
+
+```
+netstat -ntp | grep 8765
+```
+
+用来看本地网络端口的状态
+
+参数：
+
+- n:  以数字形式显示地址和端口 （如果不加那么可能显示的是主机名而不是IP）
+- a:  显示所有
+- t:  仅展示tcp连接
+- p:  显示进程和进程号
+
+```
+home# netstat -ntp | grep 8766
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name 
+tcp6       0      0 fdbd:dc61:9:463:9e:8766 fdbd:dc53:1:87::2:33226 ESTABLISHED 139/./shell_server  
+tcp6       0      0 172.18.1.155:8766       10.121.74.137:46918     ESTABLISHED 139/./shell_server  
+tcp6   22784      0 172.18.1.155:8766       10.213.37.69:43392      ESTABLISHED 139/./shell_server  
+tcp6  241057      0 172.18.1.155:8766       10.189.51.208:56728     ESTABLISHED 139/./shell_server  
+tcp6       0      0 172.18.1.155:8766       10.222.90.12:57186      ESTABLISHED 139/./shell_server  
+tcp6  175939      0 fdbd:dc61:9:463:9e:8766 fdbd:dc53:22:812::33886 ESTABLISHED 139/./shell_server  
+tcp6       0      0 172.18.1.155:8766       10.111.92.8:43360       ESTABLISHED 139/./shell_server  
+```
+
+其中
+
+- Local Address 本地的地址和端口，可能是ipV4或者v6
+- Foreign Address  远程地址
+- State: 
+  - ESTABLISHED表示已经建立连接
+  - SYN-SENT 表示握手发出去了，但是对方没法返回，就是网络不通
+  - LISTEN 表示这个这个端口正在监听传入的连接，就比如起了一个web服务等待调用
+  - TIME-WAIT 表示连接关闭中，等待一段时间确保客户端断连
+
+
+
+
 
 ## 性能相关
 
@@ -121,9 +206,36 @@ Tcpdump
 
 - -p 加上PID， 就只看某个进程
 
+
+
+### free
+
+
+
+
+
 ## 进程相关
 
-lsof
+### lsof
+
+如果本地一个端口发现夯住了，可以通过
+
+```
+lsof -i:8080
+```
+
+来查看端口占用情况
+
+```
+/home #  lsof -i:8080  
+COMMAND     PID      USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME
+Code\x20H  4427 bytedance  242u  IPv4 0x7a9e72d2be1aac57      0t0  TCP localhost:http-alt (LISTEN)
+Code\x20H  4427 bytedance  243u  IPv4 0x742941a703a70434      0t0  TCP localhost:http-alt->localhost:63576 (ESTABLISHED)
+node      58628 bytedance   44u  IPv4 0x6849cfa039fbc345      0t0  TCP *:http-alt (LISTEN)
+node      98321 bytedance  150u  IPv4 0x7c4533a00a28b9e5      0t0  TCP localhost:63576->localhost:http-alt (ESTABLISHED)
+```
+
+
 
 
 

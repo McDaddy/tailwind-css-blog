@@ -232,11 +232,11 @@ fmt.Print(count)
 s := make([]int, 3, 6)
 ```
 
-在这里，3是切片的长度，6是切片的容量，灰色的部分是内存已经分配了，但是没有被使用的部分
+在这里，**两个参数**3是切片的**长度**，6是切片的**容量**，灰色的部分是内存已经分配了，但是没有被使用的部分
 
 ![image-20240802210709732](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20240802210709732.png)
 
-我们要读取切片内容只能在len的范围内，如果读s[4]，那就会报`index out of range`的err
+我们要读取切片内容只能在len的范围内，如果读s[4]（即使此时还在分配内存的范围内），那就会报`index out of range`的err
 
 如果当我们通过append新增元素超过cap时，Go就会创建一个新的数组，同时复制所有当前元素过去，新的数组的长度是原来的**两倍**
 
@@ -246,12 +246,12 @@ s := make([]int, 3, 6)
 
 而原来的数组，会在GC后被释放
 
-### 切割问题
+### 切割append问题
 
 ```go
 	s1 := make([]int, 3, 6) // [0 ,0, 0]
 	s2 := s1[1:3] // [0, 0]
-	s1[1] = 1
+	s1[1] = 1   // [0, 1, 0]
 	fmt.Print(s2) // [1, 0]
 
 	s2 = append(s2, 2)
@@ -260,7 +260,7 @@ s := make([]int, 3, 6)
 
 	s1 = append(s1, 4)
 	fmt.Print(s1) // [0, 1, 0, 4]
-	fmt.Print(s2) // [1, 0, 4]
+	fmt.Print(s2) // [1, 0, 4] 这个有没有超出预期?
 ```
 
 运行上面的代码，虽然s2从s1上切出来了，但是它们各自的改动还是在影响着对方，下面简述下原因
@@ -285,4 +285,145 @@ s2与s1共享一段数组，只是s2从第二位开始，同时容量比s1小1
 
 总之，切片的长度是切片中**可用元素的数量**，容量是切片**底层数组中的数量**，如果两者相等，代表底层数组满了，再往里添加元素就会把当前所有元素复制到一个新的数组里，同时切片指向新的数组
 
-为了避免上面的不可预知问题，
+为了避免上面的不可预知问题，有**两种方式**来解决
+
+1. **使用copy来实现切片间的复制**， 两者就没有引用上的关联，自然就没有上面的问题，但是它也有隐藏的问题，比如切片非常大时，复制就非常消耗性能， 还有一个问题就是copy只能从头开始复制，不能从中间复制
+2. 使用另一种**切片语法**`s[low：high：max]`，max的意义是生成的切片的容量等于max-low，在这个例子里
+
+```
+	s1 := make([]int, 3, 6) // [0 ,0, 0]
+	s2 := s1[1:3:3] // [0, 0] 限定了s2的cap是2 (3-1)
+	s1[1] = 1   // [0, 1, 0]
+	fmt.Print(s2) // [1, 0]
+
+	s2 = append(s2, 2) // 此时s2已经和s1脱钩，因为s2已经超过他原本的cap
+	fmt.Print(s1) // [0, 1, 0]
+	fmt.Print(s2) // [1, 0, 2]
+
+	s1 = append(s1, 4)
+	fmt.Print(s1) // [0, 1, 0, 4]
+	fmt.Print(s2) // [1, 0, 2]  符合预期
+```
+
+
+
+## # 21 低效的切片初始化
+
+```go
+func convertEmptySlice(foos []Foo) []Bar {
+	bars := make([]Bar, 0)
+
+	for _, foo := range foos {
+		bars = append(bars, fooToBar(foo))
+	}
+	return bars
+}
+```
+
+这里例子初始化切片传了一个0值的长度（长度这个参数是**必传**的）且没有传容量。然后，使用append添加Bar元素。起初，bars是空的，因此添加第一个元素会分配一个大小为1的底层数组。每当底层数组被充满时，Go都会创建一个2倍于当前容量的新数组
+
+在我们添加第3个元素、第5个元素、第9个元素时等，这个创建数据的逻辑都会重复。假设输入切片有1000个元素，该算法需要分配10个底层数组，并将1000多个元素从一个数组复制到另一个。这导致GC需要付出很多额外的工作来清理所有这些临时的底层数组。
+
+解决这个问题，我们必须通过指定合适大小的长度或者容量来初始化
+
+```go
+func convertGivenCapacity(foos []Foo) []Bar {
+	n := len(foos)
+	bars := make([]Bar, 0, n)
+
+	for _, foo := range foos {
+		bars = append(bars, fooToBar(foo))
+	}
+	return bars
+}
+```
+
+如果我们不指定长度，指定容量。在内部Go预先分配了一个由n个元素组成的数组。因此，添加n个元素都会使用同一个底层数组，从而大幅减少分配数组的数量。
+
+```go
+func convertGivenLength(foos []Foo) []Bar {
+	n := len(foos)
+	bars := make([]Bar, n)
+
+	for i, foo := range foos {
+		bars[i] = fooToBar(foo)
+	}
+	return bars
+}
+```
+
+又或者不指定容量，只指定长度。 但这里要注意的是添加元素只能用下标来改变而不能用append，除非容量已经充满
+
+经过测试100w量级的数据，后面两种的速度是不指定版本的3倍以上
+
+
+
+## # 22 空切片与nil切片
+
+- 空切片：长度为0，值不为nil
+- nil切片：类型是切片，长度为0，值为nil
+
+```go
+func main() {
+	var s []string
+  log(1, s) // 1: empty=true nil=true
+
+	s = []string(nil)
+	log(2, s) // 2: empty=true nil=true
+
+	s = []string{}
+	log(3, s) // 3: empty=true nil=false
+
+	s = make([]string, 0)
+	log(4, s) // 4: empty=true nil=false
+}
+
+func log(i int, s []string) {
+	fmt.Printf("%d: empty=%t\tnil=%t\n", i, len(s) == 0, s == nil)
+}
+```
+
+两者类型相同（后续能做的操作也相同比如append），主要区别是是否有资源分配，显然nil切片是**不需要**资源分配的
+
+```go
+var s []string  // 使用最广
+s = []string(nil)  // 几乎用不到，只要是语法中的快捷方式
+s = []string{}   // 用来初始化包含初始元素的切片
+s = make([]string, 0) // 创建一个已知长度的切片
+```
+
+还要注意在encoding/json这种包的编码问题， 如果是nil切片，结果是null，而如果是空切片，结果是`[]`
+
+最后如何判断一个切片是否为空，最好的办法不是判断切片是不是nil，而是去判断`len(s)`因为不管是nil切片还是空切片，len结果都是0，这样就不需要去做主动区分了
+
+
+
+## #24 无法正确复制切片
+
+如上提到，复制切片最好是使用copy，但copy可能也会有些常见错误
+
+```go
+func bad() {
+	src := []int{0, 1, 2}
+	var dst []int
+	copy(dst, src)
+	fmt.Println(dst) // []
+}
+
+func correct() {
+	src := []int{0, 1, 2}
+	dst := make([]int, len(src))
+	copy(dst, src)
+	fmt.Println(dst) // [0 ,1, 2]
+}
+```
+
+失败的原因是copy只会复制源和目标中长度的**最小值**，所以本例中最小值是nil切片的长度0，所以就没复制成功。（换句话说copy不会帮助我们扩展切片的长度）
+
+如果不使用copy，还有一种更快捷的方式
+
+```go
+src := []int{0, 1, 2}
+dst := append([]int(nil), src...)
+```
+
