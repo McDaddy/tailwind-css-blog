@@ -218,3 +218,5 @@ plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 ```
 
 `source ~/.zshrc` 使修改生效
+
+- [x] aaa

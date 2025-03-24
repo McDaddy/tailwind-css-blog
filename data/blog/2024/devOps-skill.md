@@ -103,6 +103,28 @@ tcp6       0      0 172.18.1.155:8766       10.111.92.8:43360       ESTABLISHED 
 
 
 
+### ip
+
+可以替代ifconfig获取本机ip相关信息
+
+```bash
+ip addr show
+```
+
+
+
+### iptables
+
+```bash
+iptables -t nat -L -n -v
+```
+
+
+
+
+
+
+
 ## 性能相关
 
 ### top
@@ -242,3 +264,20 @@ node      98321 bytedance  150u  IPv4 0x7c4533a00a28b9e5      0t0  TCP localhost
 
 
 ps
+
+
+
+## 实用工具
+
+lrzsz 在有堡垒机的情况下上传下载文件
+
+https://zhuanlan.zhihu.com/p/569859537
+
+```shell
+# 上传
+rz
+
+# 下载
+sz 文件名
+```
+
