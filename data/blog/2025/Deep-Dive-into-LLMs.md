@@ -19,7 +19,7 @@ summary: 'Deep Dive into LLMs like ChatGPT 全文总结'
 
 
 
-## 预训练
+## Pre Training
 
 预训练可以视为是整个LLM训练的第一阶段，它的核心目的是为了大模型收集足够多的高质量预料，并内化成大模型的一部分
 
@@ -104,7 +104,7 @@ base model对训练资料的**记忆能力非常强大**，下面把维基百科
 
 ![image-20250326135815359](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250326135815359.png)
 
-同样的，我们把2024年美国大选的维基百科内容作为前缀输入，得到的结果就完全是一个平行宇宙，它推断川普击败了拜登，而事实上击败的是哈里斯。 这种情况就称为**幻觉（hallucination）**。 产生这个问题的原因是这个基础模型的知识截止时间是2023年，上面我们提到过基础模型只是一个没有感情的Token模拟器，即使需要预测它的知识库中完全没有提到的内容时，它还是可以通过计算得到一个概率最高的next token，然后循环往复，就好像没有它不知道不了解的事情，而且语言叙述还非常肯定有把握。
+同样的，我们把2024年美国大选的维基百科内容作为前缀输入，得到的结果就完全是一个平行宇宙，它推断川普击败了拜登，而事实上击败的是哈里斯。 这种情况就称为**幻觉（hallucination）**。 产生这个问题的原因是这个基础模型的知识截止时间是2023年，上面我们提到过基础模型只是一个没有感情的Token模拟器，即使需要预测它的知识库中完全没有提到的内容时，它还是可以通过计算得到一个概率最高的next token，然后循环往复，就好像没有它不知道不了解的事情。
 
 ![image-20250326140748273](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250326140748273.png)
 
@@ -178,4 +178,71 @@ Assistant: "I'm sorry I can't help with that."
 
 ![image-20250327142416771](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250327142416771.png)
 
-这样的格式就有点类似TCP/IP协议，传输包的内容是完全根据协议来组装，比如前N位表示什么，中间N位表示什么，每个段落的含义是什么，都是明确的**协议规则**。 通过这样协议化结构化的输入，可以帮助大模型更好的理解，而不至于出现意义的混淆
+这样的格式就有点类似**TCP/IP协议**，传输包的内容是完全根据协议来组装，比如前N位表示什么，中间N位表示什么，每个段落的含义是什么，都是明确的**协议规则**。 通过这样协议化结构化的输入，可以帮助大模型更好的理解，而不至于出现意义的混淆
+
+
+
+### 减轻幻觉
+
+首先我们来看幻觉是如何产生的，在我们做对话语料的训练时，我们将一些正确的的问答内容喂为了基础模型，如下
+
+```
+Human: "Who is Tom Cruise?"
+Assistant: "Tom Cruise is a famous American actor and producer..."
+------
+Human: "Who is John Barrasso?"
+Assistant: "John Barrasso is American physician and politician..."
+------
+Human: "Who is Genghis Khan?"
+Assistant: "Genghis Khan was the founder of the Mongol Empire."
+```
+
+而此时我们得到的就是一个可以模仿对话打标人员，对用户输入问题回答的模型。
+
+```
+Human: "Who is Orson Kovacs?"  // 这是个不存在的人名
+Assistant: ???
+```
+
+当用户输入的人名在现实中不存在时，即使模型无法从知识库里匹配到相关性高的内容，他还是会坚持模仿训练数据的语料，坚定有把握得回答问题 （这里使用[falcon-7b-instruct](https://huggingface.co/tiiuae/falcon-7b-instruct)这个模型测试）
+
+![image-20250328134028326](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250328134028326.png)
+
+那么如何减少这种幻觉的产生呢？这里主要介绍两种方法
+
+#### 学会说不
+
+这个方式主要流程是
+
+1. 找一些网上的知识，用大模型总结成几个问题和答案，就必然上面提到的2024美国大选
+2. 将这些问题向模型提问，测试模型回答能力的边界，如果回答出现幻觉，那么就把这条对话记录的回答改成，“对不起，我不清楚”
+3. 把这些对话也作为语料喂给模型训练，那么此时对模型来说，"对不起，我不清楚"就成了一个“标准答案”
+4. 在各个领域都重复这些动作，最终使大模型意识到，当它遇到一个问题，拿不到一个特别高的预测概率结果时，就直接说不知道
+
+```
+Human: "Who is Orson Kovacs?"
+Assistant: "I'm sorry, I don't believe I know"
+```
+
+
+
+#### 学会工具
+
+简单的说，就是允许模型借助搜索引擎进行搜索。这可以说是上一步的延续，当模型发现对结果没有把握时，会调用Search工具，比如Bing，谷歌等，当输出<SEARCH_START>这个预设Symbol时，模型会暂停下来，等到搜索的结果，直到<SEARCH_END>，并且把搜索得来的结果放到下文中，成为模型可以直接可以读取的信息。 这就是我们现在常见的**联网搜索**功能
+
+```
+Human: "Who is Orson Kovacs?"
+Assistant: "
+<SEARCH_START>Who is Orson Kovacs?<SEARCH_END>
+[...] 
+Orson Kovacs appears to be ..."
+```
+
+借助工具的实现方式，我们发现将准确的信息放在上下文中是可以大大提升准确率的。
+
+相比之下，**模型参数中的知识就像是我们一个月前看过的书**，虽然我们知道内容，可以回忆，但是终究是有些模糊的，而**上下文里的信息就像是此时此刻发生的一切**，模型可以直接准确无误的获取
+
+举个例子，如果我们希望让模型总结一本有名的书的第一章内容，相比我们直接让模型去总结，直接把书本的文字内容粘贴进上下文，然后让模型总结可以得到更加准确的结果
+
+
+
