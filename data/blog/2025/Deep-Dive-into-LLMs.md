@@ -349,7 +349,7 @@ Answer:$3
 
 
 
-<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250330232146557.png" alt="image-20250330232146557" style="zoom:67%;" />
+<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250330232146557.png" alt="image-20250330232146557"  />
 
 纵观以上这三个训练步骤，其实和我们人类的学习方式是非常像的
 
@@ -367,7 +367,7 @@ Answer:$3
 
 事实上，强化学习在一些特定场景下，已经有比较成功的案例，比如前些年著名的AlphaGo大战人类棋手李世石，当时的AlphaGo其实就是强化学习的产物。 Google团队发现，如果仅仅是用监督学习，那么AlphaGo的水平永远只能和人类顶尖水平接近，而没有办法实现超越，因为所有的策略下法都是通过人类经验教授的，就有一种学生无法打败老师的感觉。但是强化学习打破了这个限制，AlphaGo可以下出人类从来没有使用过的招式（[第37步](https://www.johnmenick.com/writing/move-37-alpha-go-deep-mind.html)），甚至让专家都以为是一个错误，但实际上算是神之一手的精彩落子。 这个行为并不是AlphaGo在现场的一个随机行为，而是AlphaGo经过无数次自我探索之后领悟到的一个更高胜率的策略，即使没有在历史任何棋局中出现，但只要能增加胜率，这就会成为强化学习模型的优先选择
 
-<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250331234747968.png" alt="image-20250331234747968" style="zoom:67%;" />
+<img src="https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250331234747968.png" alt="image-20250331234747968"  />
 
 
 
