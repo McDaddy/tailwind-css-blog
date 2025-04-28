@@ -72,17 +72,9 @@ summary: Agent Planning with World Knowledge Model 解读
 
 - 提示格式：要求模型总结成功轨迹的关键步骤和策略，例如 “当任务是 X 时，应先做 A，再做 B...”。
 
-- 公式化：其中
-  $$
-  \rho_{TaskKnow}
-  $$
-  为任务知识提取提示。
+- 公式化：
 
-$$
-\kappa \sim \pi_\theta(\cdot | \rho_{TaskKnow}, u, \tau_w, \tau_l)
-$$
-
-
+![image-20250428121712453](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250428121712453.png)
 
 ![image-20250425143654630](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250425143654630.png)
 
@@ -96,7 +88,7 @@ $$
 
 ![image-20250425162002624](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250425162002624.png)
 
-- **状态知识库构建**： 将状态知识\(s_t\)与前后动作组合为三元组\((a_t, s_t, a_{t+1})\)，构建**状态知识库 B**。通过检索，利用语义相似性匹配当前状态，约束下一步动作。注意：这里并不是把总结出来的状态知识直接放到LLM的上下文中，而是一个外挂一样的存在
+- **状态知识库构建**： 将状态知识(s_t)与前后动作组合为三元组((a_t, s_t, a_t+1))，构建**状态知识库 B**。通过检索，利用语义相似性匹配当前状态，约束下一步动作。注意：这里并不是把总结出来的状态知识直接放到LLM的上下文中，而是一个外挂一样的存在
 
 
 
@@ -107,21 +99,19 @@ $$
 - 输入：任务指令u + 任务知识k + 专家轨迹tw
 
 - 损失函数：自回归损失，聚焦动作生成，掩码无关令牌：
-  $$
-  \mathcal{L}_{agent} = -\mathbb{E}_{\tau_w \sim \mathcal{D}} \left[ \sum_{j=1}^{|X|} \mathbb{1}(x_j \in \mathcal{A}) \log \pi_\theta(x_j | u, \kappa, x_{<j}) \right]
-  $$
+  
+  ![image-20250428121812845](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250428121812845.png)
 
 
 
 
 **WKM**：
 
-- 输入：任务指令u + 任务知识k + 含状态知识的专家轨迹tw（包含\(s_t\)）。
+- 输入：任务指令u + 任务知识k + 含状态知识的专家轨迹tw（包含(s_t)）。
 
 - 损失函数：联合优化任务知识生成和状态知识匹配，掩码状态相关令牌：
-  $$
-  \mathcal{L}_{know} = -\mathbb{E}_{\kappa, \tau_w' \sim \mathcal{D}'} \left[ \log \pi_\phi(\kappa | u) + \sum_{j=1}^{|X'|} \mathbb{1}(x_j' \in \mathcal{S}) \log \pi_\phi(x_j' | u, \kappa, x_{<j}') \right]
-  $$
+  
+  ![image-20250428121832894](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250428121832894.png)
 
 两个模型训练都是使用同样的底层模型（比如Mistral-7B），利用LoRA做微调训练，两者的区别就是WKM多了state knowledge，而损失函数的核心，都是去计算结果与专家轨迹tw的差值和
 
@@ -133,15 +123,15 @@ $$
 
 **状态知识约束局部动作**：
 
-1. 生成当前状态信息\(s_t\)，从**状态知识库 B** 中检索与\(a_t\)（前一动作）匹配的三元组，获取候选下一动作\(a_{next}\)的概率分布\(P_{know}\)
+1. 生成当前状态信息(s_t)，从**状态知识库 B** 中检索与(a_t)（前一动作）匹配的三元组，获取候选下一动作(a_next)的概率分布(P_know)
 
-2. Agent模型生成动作概率分布\(P_{agent}\)
+2. Agent模型生成动作概率分布(P_agent)
 
 3. 加权融合两者：
-   $$
-   a_{t+1} = \arg\max_{\alpha_u^{(i)}} \left( \gamma \cdot p_{agent}(\alpha_u^{(i)}) + (1-\gamma) \cdot p_{know}(\alpha_u^{(i)}) \right)
-   $$
-    其中γ 为超参数（如 ALFWorld 设 0.4，平衡模型生成与知识库约束）。
+   
+   ![image-20250428121857628](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250428121857628.png)
+   
+其中γ 为超参数（如 ALFWorld 设 0.4，平衡模型生成与知识库约束）。
 
 注意：在推理阶段WKM的temperature被设置为0，Agent Model为0.5。γ 的取值代表了人为对Task Knowledge和State Knowledge Planning的偏好。 如果γ 为0，则完全信任状态知识库，为1时则完全信任Agent模型
 
