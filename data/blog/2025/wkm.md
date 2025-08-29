@@ -131,6 +131,7 @@ summary: Agent Planning with World Knowledge Model 解读
    
    ![image-20250428121857628](https://kuimo-markdown-pic.oss-cn-hangzhou.aliyuncs.com/image-20250428121857628.png)
    
+
 其中γ 为超参数（如 ALFWorld 设 0.4，平衡模型生成与知识库约束）。
 
 注意：在推理阶段WKM的temperature被设置为0，Agent Model为0.5。γ 的取值代表了人为对Task Knowledge和State Knowledge Planning的偏好。 如果γ 为0，则完全信任状态知识库，为1时则完全信任Agent模型
@@ -184,3 +185,5 @@ REACT、Reflexion（提示基线），NAT、ETO（含拒绝轨迹的微调基线
 
 - 在Oncall、OS排障、调优等场景，当前不论是通过代码框架编排还是通过Aily、Coze等可视化工具编排，都是属于偏静态的设计。这就导致在泛化能力这块会比较弱。所以在条件允许，且专家经验SOP足够积累时，可以适当考虑通过微调模型来实现泛化能力的增强
 - 在一些关键节点，比如意图识别、工具选择等行动路径判断节点，可以尝试类似的方法，提升路径选择的准确率
+
+
